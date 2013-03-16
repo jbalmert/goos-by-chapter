@@ -4,11 +4,7 @@ import org.junit.After;
 import org.junit.Test;
 
 /**
- * Created with IntelliJ IDEA.
- * User: jimmy
- * Date: 3/14/13
- * Time: 9:53 PM
- * To change this template use File | Settings | File Templates.
+ * Original code from Growing Object Oriented Software, Guided By Tests, p. 85
  */
 public class AuctionSniperEndToEndTest {
     private final FakeAuctionServer auction = new FakeAuctionServer("item-54321");
