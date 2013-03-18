@@ -4,14 +4,18 @@ import org.junit.After;
 import org.junit.Test;
 
 /**
- * Original code from Growing Object Oriented Software, Guided By Tests, p. 85
+ * Added: Chapter 10
+ * Original code from GOOS, p. 85
+ * <ul>
+ *     <li>Defines first use case: single item join, lose without bidding.</li>
+ * </ul>
  */
 public class AuctionSniperEndToEndTest {
     private final FakeAuctionServer auction = new FakeAuctionServer("item-54321");
     private final ApplicationRunner application = new ApplicationRunner();
 
     @Test
-    public void sniperJoinsAuctionUntilActionCloses() {
+    public void sniperJoinsAuctionUntilActionCloses() throws Exception{
         auction.startSellingItem();
         application.startBiddingIn(auction);
         auction.hasReceivedJoinRequestFromSniper();
