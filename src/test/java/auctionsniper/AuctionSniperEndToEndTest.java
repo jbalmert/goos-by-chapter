@@ -5,9 +5,15 @@ import org.junit.Test;
 
 /**
  * Added: Chapter 10
- * Original code from GOOS, p. 85
+ * Original code from GOOS, pg 85
  * <ul>
  *     <li>Defines first use case: single item join, lose without bidding.</li>
+ * </ul>
+ *
+ * Changed Chapter 12
+ * Code from GOOS, pg 106, 109
+ * <ul>
+ *     <li>Adjust tests to use updated form of auction.hasReceivedJoinRequestFromSniper()</li>
  * </ul>
  */
 public class AuctionSniperEndToEndTest {
@@ -15,10 +21,26 @@ public class AuctionSniperEndToEndTest {
     private final ApplicationRunner application = new ApplicationRunner();
 
     @Test
-    public void sniperJoinsAuctionUntilActionCloses() throws Exception{
+    public void sniperJoinsAuctionUntilAuctionCloses() throws Exception{
         auction.startSellingItem();
         application.startBiddingIn(auction);
-        auction.hasReceivedJoinRequestFromSniper();
+        auction.hasReceivedJoinRequestFromSniper(ApplicationRunner.SNIPER_XMPP_ID);
+        auction.announcesClosed();
+        application.showsSniperHasLostAuction();
+    }
+
+    @Test
+    public void sniperMakesAHigherBidButLoses() throws Exception {
+        auction.startSellingItem();
+
+        application.startBiddingIn(auction);
+        auction.hasReceivedJoinRequestFromSniper(ApplicationRunner.SNIPER_XMPP_ID);
+
+        auction.reportPrice(1000, 98, "other bidder");
+        application.hasShownSniperIsBidding();
+
+        auction.hasReceivedBid(1098, ApplicationRunner.SNIPER_XMPP_ID);
+
         auction.announcesClosed();
         application.showsSniperHasLostAuction();
     }

@@ -1,5 +1,7 @@
 package auctionsniper;
 
+import auctionsniper.ui.MainWindow;
+
 /**
  * Added Chapter 10:
  * Original code form consists of stubs to allow compilation.
@@ -13,6 +15,12 @@ package auctionsniper;
  *     <li>Dispose of the window after the test is done.</li>
  * </ul>
  *
+ * Chaged Chapter 12:
+ * Code from GOOS, pg 110.
+ * <ul>
+ *     <li>Adding implementation for showsSniperIsBidding</li>
+ * </ul>
+ *
  */
 public class ApplicationRunner {
     public static final String SNIPER_ID = "sniper";
@@ -20,6 +28,7 @@ public class ApplicationRunner {
     public static final String XMPP_HOSTNAME = "localhost";
     private static final String STATUS_JOINING = "Joining";
     private static final String STATUS_LOST = "Lost";
+    public static final String SNIPER_XMPP_ID = "sniper@localhost/Auction";
 
     private AuctionSniperDriver driver;
 
@@ -48,5 +57,9 @@ public class ApplicationRunner {
         if (driver != null) {
             driver.dispose();
         }
+    }
+
+    public void hasShownSniperIsBidding() {
+        driver.showsSniperStatus(MainWindow.STATUS_BIDDING);
     }
 }

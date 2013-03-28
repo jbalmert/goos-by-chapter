@@ -1,5 +1,6 @@
 package auctionsniper;
 
+import org.hamcrest.Matcher;
 import org.jivesoftware.smack.*;
 import org.jivesoftware.smack.packet.Message;
 
@@ -7,8 +8,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static java.lang.String.format;
 
 /**
  * Added Chapter 10:
@@ -24,6 +27,16 @@ import static org.hamcrest.Matchers.notNullValue;
  *     <li>Diverges slightly from the original code to disable SASL authentication.  This was the simplest
  *     option to get around an authentication error not mentioned in the original text.</li>
  * </ul>
+ *
+ * Changed Chapter 12:
+ * Implementing "single item, bid, but still lose" use case.
+ * From GOOS, pg 107, 108
+ * <ul>
+ *     <li>Adding method to report price to sniper.</li>
+ *     <li>Adding method to assert that the server has received a bid from the sniper.</li>
+ *     <li>Generalize SingleMessageListener.receivesAMessage to allow it to accept different message types.</li>
+ *     <li>Removed specialized connection code.  See comments in Main.java for full explanation.</li>
+ * </ul>
  */
 public class FakeAuctionServer {
     public static final String ITEM_ID_AS_LOGIN ="auction-%s";
@@ -38,13 +51,12 @@ public class FakeAuctionServer {
 
     public FakeAuctionServer(String itemId) {
         this.itemId = itemId;
-        ConnectionConfiguration cc = createConnectionConfiguration();  // different than original
-        connection = new XMPPConnection(cc);                           // see createConnectionConfiguration javadoc
+        connection = new XMPPConnection(XMPP_HOSTNAME);
     }
 
     public void startSellingItem() throws XMPPException {
         connection.connect();
-        connection.login(String.format(ITEM_ID_AS_LOGIN, itemId),
+        connection.login(format(ITEM_ID_AS_LOGIN, itemId),
                 AUCTION_PASSWORD, AUCTION_RESOURCE);
         connection.getChatManager().addChatListener(
                 new ChatManagerListener() {
@@ -55,10 +67,6 @@ public class FakeAuctionServer {
                     }
                 }
         );
-    }
-
-    public void hasReceivedJoinRequestFromSniper() throws InterruptedException {
-        messageListener.receiveAMessage();
     }
 
     public void announcesClosed() throws XMPPException {
@@ -73,15 +81,25 @@ public class FakeAuctionServer {
         return itemId;
     }
 
-    /**
-     * This is different from the original code.  Using OpenFire 3.8, it appears the default connection mode
-     * uses SASL.  Rather than worry about configuring encryption correctly, this implementation explicitly
-     * disables the SASL authentication.
-     */
-    private ConnectionConfiguration createConnectionConfiguration() {
-        ConnectionConfiguration cc = new ConnectionConfiguration(XMPP_HOSTNAME);
-        cc.setSASLAuthenticationEnabled(false);
-        return cc;
+    public void reportPrice(int price, int increment, String bidder) throws XMPPException {
+        currentChat.sendMessage(
+            String.format("SOLVersion: 1.1; Event: PRICE; "
+                + "CurrentPrice: %d; Increment: %d; Bidder: %s",
+                price, increment, bidder));
+    }
+
+    public void hasReceivedJoinRequestFromSniper(String sniperId) throws InterruptedException {
+        receivesAMessageMatching(sniperId, equalTo(Main.JOIN_COMMAND_FORMAT));
+    }
+
+    public void hasReceivedBid(int bid, String sniperId) throws InterruptedException {
+        receivesAMessageMatching(sniperId, equalTo(format(Main.BID_COMMAND_FORMAT, bid)));
+    }
+
+    private void receivesAMessageMatching(String sniperId, Matcher<? super String> messageMatcher)
+            throws InterruptedException {
+        messageListener.receivesAMessage(messageMatcher);
+        assertThat(currentChat.getParticipant(), equalTo(sniperId));
     }
 
     public class SingleMessageListener implements MessageListener {
@@ -92,8 +110,10 @@ public class FakeAuctionServer {
             messages.add(message);
         }
 
-        public void receiveAMessage() throws  InterruptedException {
-            assertThat("Message", messages.poll(5, TimeUnit.SECONDS), is(notNullValue()));
+        public void receivesAMessage(Matcher<? super String> messageMatcher) throws  InterruptedException {
+            final Message message = messages.poll(5, TimeUnit.SECONDS);
+            assertThat("Message", message, is(notNullValue()));
+            assertThat(message.getBody(), messageMatcher);
         }
     }
 }
