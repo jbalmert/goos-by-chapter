@@ -36,6 +36,7 @@ import static java.lang.String.format;
  *     <li>Adding method to assert that the server has received a bid from the sniper.</li>
  *     <li>Generalize SingleMessageListener.receivesAMessage to allow it to accept different message types.</li>
  *     <li>Removed specialized connection code.  See comments in Main.java for full explanation.</li>
+ *     <li>Changed implementation of announceClosed() to send a real message.</li>
  * </ul>
  */
 public class FakeAuctionServer {
@@ -70,7 +71,7 @@ public class FakeAuctionServer {
     }
 
     public void announcesClosed() throws XMPPException {
-        currentChat.sendMessage(new Message());
+        currentChat.sendMessage("SOLVersion: 1.1; Event: CLOSE;");
     }
 
     public void stop() {

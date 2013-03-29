@@ -11,9 +11,14 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 /**
  * Added Chapter 12:
- * Code from GOOS, pg 114
+ * Code from GOOS, pg 114, 118, 119
  * Added initializeTranslator() to allow Mockito to create a mock instance of 'listener' before it is injected
  * into the 'translator'.
+ * <ul>
+ *     <li>notifiesAuctionClosedWhenClosedMessageReceived() forces a basic implementation</li>
+ *     <li>notifiesBidDetailsWhenCurrentPriceMessageReceived() forces a more complex implementation capable of
+ *     distinguishing different messages.</li>
+ * </ul>
  */
 @RunWith(MockitoJUnitRunner.class)
 public class AuctionMessageTranslatorTest {
@@ -36,5 +41,15 @@ public class AuctionMessageTranslatorTest {
         translator.processMessage(UNUSED_CHAT, message);
 
         verify(listener).auctionClosed();
+    }
+
+    @Test
+    public void notifiesBidDetailsWhenCurrentPriceMessageReceived() {
+        Message message = new Message();
+        message.setBody("SOLVersion: 1.1; Event: PRICE; CurrentPrice: 192; Increment: 7; Bidder: Someone else;");
+
+        translator.processMessage(UNUSED_CHAT, message);
+
+        verify(listener).currentPrice(192, 7);
     }
 }

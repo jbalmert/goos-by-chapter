@@ -28,16 +28,18 @@ import java.awt.event.WindowEvent;
  * </ul>
  *
  * Changed Chapter 12:
- * Code From GOOS, pg 110, 111
+ * Code From GOOS, pg 110, 111, 117
  * <ul>
  *     <li>joinAuction() now sends JOIN_COMMAND_FORMAT as a message response instead of an empty message.</li>
  *     <li>Connection to openfire is now disconnected when the main window closes.  This resolves an issue with
  *     multiple tests logging in as the same user.  Without firt disconnecting, openfire thinks the user is still
  *     connected, and does not accept the second login.</li>
+ *     <li>Added AuctionEventListener interface. Changed joinAuction() to use an AuctionMessageTranslator rather
+ *     than handle messages itself.</li>
  * </ul>
  *
  */
-public class Main {
+public class Main implements AuctionEventListener {
     public static final String JOIN_COMMAND_FORMAT = "";
     public static final String BID_COMMAND_FORMAT = "SOLVersion: 1.1; Command: BID; Price: %d;";
 
@@ -66,20 +68,27 @@ public class Main {
                 args[ARG_ITEM_ID]);
     }
 
+    @Override
+    public void auctionClosed() {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                ui.showStatus(MainWindow.STATUS_LOST);
+            }
+        });
+    }
+
+    @Override
+    public void currentPrice(int price, int increment) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
     private void joinAuction(XMPPConnection connection, String itemId)
             throws XMPPException{
         disconnectWhenUICloses(connection);
         final Chat chat = connection.getChatManager().createChat(
                 auctionId(itemId, connection),
-                new MessageListener() {
-                    public void processMessage(Chat aChat, Message message) {
-                        SwingUtilities.invokeLater(new Runnable() {
-                            public void run() {
-                               ui.showStatus(MainWindow.STATUS_LOST);
-                            }
-                        });
-                    }
-                });
+                new AuctionMessageTranslator(this));
         this.notToBeGCd = chat;
         chat.sendMessage(JOIN_COMMAND_FORMAT);
     }
@@ -101,7 +110,6 @@ public class Main {
         connection.login(username, password, AUCTION_RESOURCE);
         return connection;
     }
-
 
     private static String auctionId(String itemId, XMPPConnection connection) {
         return String.format(AUCTION_ID_FORMAT, itemId, connection.getServiceName());
