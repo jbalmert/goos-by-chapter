@@ -49,6 +49,13 @@ import static java.lang.String.format;
  *     method in the class.  However, this is not on the interface yet, and is not used yet.  Therefore, I've
  *     omitted it from the implementation at this time.
  * - Removed the SniperListener methods from Main as they are no longer used.
+ *
+ * Changed Chapter 14:
+ * Code from GOOS, pg 142, 147
+ * - Added sniper id to the AuctionMessageTranslator constructor call.  The value comes from connection.getUser() as
+ *     it already has the id properly formatted.
+ * - As A consequence of adding sniperWon() to the SniperListener interface, added implementation of the method
+ *     to SniperStateDisplayer.
  */
 public class Main{
     public static final String JOIN_COMMAND_FORMAT = "";
@@ -89,7 +96,7 @@ public class Main{
 
         Auction auction = new XMPPAuction(chat);
         chat.addMessageListener(
-                new AuctionMessageTranslator(new AuctionSniper(auction, new SniperStateDisplayer())));
+                new AuctionMessageTranslator(connection.getUser(), new AuctionSniper(auction, new SniperStateDisplayer())));
         auction.join();
     }
 
@@ -157,6 +164,16 @@ public class Main{
         @Override
         public void sniperBidding() {
             showStatus(MainWindow.STATUS_BIDDING);
+        }
+
+        @Override
+        public void sniperWinning() {
+            showStatus(MainWindow.STATUS_WINNING);
+        }
+
+        @Override
+        public void sniperWon() {
+            showStatus(MainWindow.STATUS_WON);
         }
 
         @Override

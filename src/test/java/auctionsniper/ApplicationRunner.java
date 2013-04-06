@@ -13,9 +13,14 @@ import auctionsniper.ui.MainWindow;
  * - No error handling.  Exceptions are simply printed out.
  * - Dispose of the window after the test is done.
  *
- * Chaged Chapter 12:
+ * Changed Chapter 12:
  * Code from GOOS, pg 110.
  * - Adding implementation for showsSniperIsBidding
+ *
+ * Changed Chapter 14:
+ * Code not listed, but forced to implement from changes to AuctionSniperEndToEndTest on pg 140
+ * - Added method to verify sniper is winning an auction.
+ * - Added method to verify sniper has won an auction.
  */
 public class ApplicationRunner {
     public static final String SNIPER_ID = "sniper";
@@ -56,5 +61,13 @@ public class ApplicationRunner {
 
     public void hasShownSniperIsBidding() {
         driver.showsSniperStatus(MainWindow.STATUS_BIDDING);
+    }
+
+    public void hasShownSniperIsWinning() {
+        driver.showsSniperStatus(MainWindow.STATUS_WINNING);
+    }
+
+    public void showsSniperHasWonAuction() {
+        driver.showsSniperStatus(MainWindow.STATUS_WON);
     }
 }
