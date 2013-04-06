@@ -20,24 +20,20 @@ import static java.lang.String.format;
  * Changed Chapter 11:
  * Basic implementation to allow first use case to be completed.
  * From GOOS, pg 93-94
- * <ul>
- *     <li>Creates connection to XMPPConnection.  As stated in the notes at the beginning of the chapter,
- *     this calls assumes the OpenFire server is running locally for development purposes.</li>
- *     <li>Defines SingleMessageListener inner class to wrap a blocking queue allowing message at a time.</li>
- *     <li>Diverges slightly from the original code to disable SASL authentication.  This was the simplest
- *     option to get around an authentication error not mentioned in the original text.</li>
- * </ul>
+ * - Creates connection to XMPPConnection.  As stated in the notes at the beginning of the chapter,
+ *     this calls assumes the OpenFire server is running locally for development purposes.
+ * - Defines SingleMessageListener inner class to wrap a blocking queue allowing message at a time.
+ * - Diverges slightly from the original code to disable SASL authentication.  This was the simplest
+ *     option to get around an authentication error not mentioned in the original text.
  *
  * Changed Chapter 12:
  * Implementing "single item, bid, but still lose" use case.
  * From GOOS, pg 107, 108
- * <ul>
- *     <li>Adding method to report price to sniper.</li>
- *     <li>Adding method to assert that the server has received a bid from the sniper.</li>
- *     <li>Generalize SingleMessageListener.receivesAMessage to allow it to accept different message types.</li>
- *     <li>Removed specialized connection code.  See comments in Main.java for full explanation.</li>
- *     <li>Changed implementation of announceClosed() to send a real message.</li>
- * </ul>
+ * - Adding method to report price to sniper.
+ * - Adding method to assert that the server has received a bid from the sniper.
+ * - Generalize SingleMessageListener.receivesAMessage to allow it to accept different message types.
+ * - Removed specialized connection code.  See comments in Main.java for full explanation.
+ * - Changed implementation of announceClosed() to send a real message.
  */
 public class FakeAuctionServer {
     public static final String ITEM_ID_AS_LOGIN ="auction-%s";

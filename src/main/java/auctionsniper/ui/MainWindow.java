@@ -7,10 +7,8 @@ import java.awt.*;
 /**
  * Added Chapter 11:
  * Original code from GOOS, pg 97, 102
- * <ul>
- *     <li>Creates a new JFrame and makes it visible.</li>
- *     <li>Implements ability to update status label text.</li>
- * </ul>
+ * - Creates a new JFrame and makes it visible.
+ * - Implements ability to update status label text.
  */
 public class MainWindow extends JFrame{
     private static final String MAIN_WINDOW_NAME = "Auction Sniper Main";

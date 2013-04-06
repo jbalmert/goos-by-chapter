@@ -8,19 +8,14 @@ import auctionsniper.ui.MainWindow;
  *
  * Changed Chapter 11:
  * Code from GOOS, pg. 90.
- * <ul>
- *     <li>Application started in new thread.</li>
- *     <li>Assume a bidding on a single item for now.</li>
- *     <li>No error handling.  Exceptions are simply printed out.</li>
- *     <li>Dispose of the window after the test is done.</li>
- * </ul>
+ * - Application started in new thread.
+ * - Assume a bidding on a single item for now.
+ * - No error handling.  Exceptions are simply printed out.
+ * - Dispose of the window after the test is done.
  *
  * Chaged Chapter 12:
  * Code from GOOS, pg 110.
- * <ul>
- *     <li>Adding implementation for showsSniperIsBidding</li>
- * </ul>
- *
+ * - Adding implementation for showsSniperIsBidding
  */
 public class ApplicationRunner {
     public static final String SNIPER_ID = "sniper";

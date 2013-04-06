@@ -11,9 +11,7 @@ import static org.hamcrest.Matchers.equalTo;
 /**
  * Added Chapter 11:
  * Original code from GOOS, pg 91
- * <ul>
- *     <li>Allows assertion of auction status so test conditions can be asserted.</li>
- * </ul>
+ * - Allows assertion of auction status so test conditions can be asserted.
  */
 public class AuctionSniperDriver extends JFrameDriver{
     public AuctionSniperDriver(int timeoutMillis) {

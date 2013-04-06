@@ -6,15 +6,11 @@ import org.junit.Test;
 /**
  * Added: Chapter 10
  * Original code from GOOS, pg 85
- * <ul>
- *     <li>Defines first use case: single item join, lose without bidding.</li>
- * </ul>
+ * - Defines first use case: single item join, lose without bidding.
  *
  * Changed Chapter 12
  * Code from GOOS, pg 106, 109
- * <ul>
- *     <li>Adjust tests to use updated form of auction.hasReceivedJoinRequestFromSniper()</li>
- * </ul>
+ * - Adjust tests to use updated form of auction.hasReceivedJoinRequestFromSniper()
  */
 public class AuctionSniperEndToEndTest {
     private final FakeAuctionServer auction = new FakeAuctionServer("item-54321");
