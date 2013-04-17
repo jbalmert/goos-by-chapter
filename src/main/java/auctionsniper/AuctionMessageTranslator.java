@@ -1,7 +1,5 @@
 package auctionsniper;
 
-import static  auctionsniper.AuctionEventListener.PriceSource.*;
-
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.packet.Message;
@@ -18,29 +16,23 @@ import java.util.HashMap;
  * Changed Chapter 13:
  * Code from GOOS, pg 135
  * - An AuctionEvent class is extracted to own the responsibility of parsing event messages
- *
- * * Added Chapter 14:
- * - Added sniperId parameter to AuctionMessageTranslator constructor to allow the translator to determine if the
- *     current bid is from the sniper or someone else.
  */
 public class AuctionMessageTranslator implements MessageListener {
     private final AuctionEventListener listener;
-    private final String sniperId;
 
-    public AuctionMessageTranslator(String sniperId, AuctionEventListener listener) {
+    public AuctionMessageTranslator(AuctionEventListener listener) {
         this.listener = listener;
-        this.sniperId = sniperId;
     }
 
     public void processMessage(Chat chat, Message message) {
         AuctionEvent event = AuctionEvent.from(message.getBody());
 
-        String eventType = event.type();
-        if ("CLOSE".equals(eventType)) {
+        String type = event.type();
+        if ("CLOSE".equals(type)) {
             listener.auctionClosed();
-        } else if("PRICE".equals(eventType)) {
-            listener.currentPrice(event.currentPrice(),
-                    event.increment(), event.isFrom(sniperId));
+        } else if("PRICE".equals(type)) {
+            listener.currentPrice(Integer.parseInt(event.currentPrice()),
+                    event.increment());
         }
     }
 
@@ -93,12 +85,7 @@ public class AuctionMessageTranslator implements MessageListener {
         }
 
 
-        public AuctionEventListener.PriceSource isFrom(String sniperId) {
-            return sniperId.equals(bidder()) ? FromSniper : FromOtherBidder;
-        }
 
-        private String bidder() {
-           return get("Bidder");
-        }
+
     }
 }

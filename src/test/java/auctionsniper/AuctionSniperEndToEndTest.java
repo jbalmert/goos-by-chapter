@@ -11,16 +11,6 @@ import org.junit.Test;
  * Changed Chapter 12
  * Code from GOOS, pg 106, 109
  * - Adjust tests to use updated form of auction.hasReceivedJoinRequestFromSniper()
- *
- * Changed Chapter 14
- * Code from GOOS, pg 140
- * - Added sniperWinsAuctionByBiddingHigher() to drive out the functionality to win an auction.
- *
- * Changed Chapter 15:
- * Code from GOOS, pg 152
- * - Changed sniperWinsAnAuctionByBiddingHigher() to expect the various state transitions to
- *     display the price and bid changes on the UI.  This leads to a JTable implementation to replace the
- *     JLabel in the UI currently.
  */
 public class AuctionSniperEndToEndTest {
     private final FakeAuctionServer auction = new FakeAuctionServer("item-54321");
@@ -43,31 +33,12 @@ public class AuctionSniperEndToEndTest {
         auction.hasReceivedJoinRequestFromSniper(ApplicationRunner.SNIPER_XMPP_ID);
 
         auction.reportPrice(1000, 98, "other bidder");
-        application.hasShownSniperIsBidding(1000, 1098);
+        application.hasShownSniperIsBidding();
 
         auction.hasReceivedBid(1098, ApplicationRunner.SNIPER_XMPP_ID);
 
         auction.announcesClosed();
         application.showsSniperHasLostAuction();
-    }
-
-    @Test
-    public void sniperWinsAnAuctionByBiddingHigher() throws Exception{
-        auction.startSellingItem();
-
-        application.startBiddingIn(auction);
-        auction.hasReceivedJoinRequestFromSniper(ApplicationRunner.SNIPER_XMPP_ID);
-
-        auction.reportPrice(1000, 98, "other bidder");
-        application.hasShownSniperIsBidding(1000, 1098);
-
-        auction.hasReceivedBid(1098, ApplicationRunner.SNIPER_XMPP_ID);
-
-        auction.reportPrice(1098, 97, ApplicationRunner.SNIPER_XMPP_ID);
-        application.hasShownSniperIsWinning(1098);
-
-        auction.announcesClosed();
-        application.showsSniperHasWonAuction(1098);
     }
 
     @After public void stopAuction() {

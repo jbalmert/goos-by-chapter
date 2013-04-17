@@ -1,7 +1,6 @@
 package auctionsniper;
 
 import auctionsniper.ui.MainWindow;
-import auctionsniper.ui.SnipersTableModel;
 import org.jivesoftware.smack.*;
 import org.jivesoftware.smack.packet.Message;
 
@@ -46,30 +45,12 @@ import static java.lang.String.format;
  *     the circular dependencies of the Chat, AuctionMessageTranslator, AuctionSniper, and Auction.
  * - Added implementation of sniperBidding() added to SniperListener interface.
  * - Added inner class XMPPAuction as an implementation of Auction interface.
- * - Added inner class SwingThreadSniperListener.  As a side note, the code in the book lists sniperWinning() as a
+ * - Added inner class SniperStateDisplayer.  As a side note, the code in the book lists sniperWinning() as a
  *     method in the class.  However, this is not on the interface yet, and is not used yet.  Therefore, I've
  *     omitted it from the implementation at this time.
  * - Removed the SniperListener methods from Main as they are no longer used.
- *
- * Changed Chapter 14:
- * Code from GOOS, pg 142, 147
- * - Added sniper id to the AuctionMessageTranslator constructor call.  The value comes from connection.getUser() as
- *     it already has the id properly formatted.
- * - As A consequence of adding sniperWon() to the SniperListener interface, added implementation of the method
- *     to SwingThreadSniperListener.
- *
- * Changed Chapter 15:
- * Code change mentioned in GOOS, pg 155, but not shown
- * - Changed signature of sniperBidding() to take in a SniperSnapshot.
- * - Removed sniperBidding(), sniperWinning(), sniperLost(), etc on SwingThreadSniperListener as these were removed
- *     from the SniperListener interface in favor of sniperStatusChanged() which handles all the responsibilities
- *     of the previous state change methods.
- * - Renamed SniperStateDisplayer to SwingThreadSniperListener.  It now directly interacts with the SniperTableModel,
- *     which now implements the SniperListener interface.  This bypasses the MainWindow, which was simply forwarding
- *     the message to the table model.
  */
 public class Main{
-    private final SnipersTableModel snipers = new SnipersTableModel();
     public static final String JOIN_COMMAND_FORMAT = "";
     public static final String BID_COMMAND_FORMAT = "SOLVersion: 1.1; Command: BID; Price: %d;";
 
@@ -108,8 +89,7 @@ public class Main{
 
         Auction auction = new XMPPAuction(chat);
         chat.addMessageListener(
-                new AuctionMessageTranslator(connection.getUser(), new AuctionSniper(auction,
-                        new SwingThreadSniperListener(snipers), itemId)));
+                new AuctionMessageTranslator(new AuctionSniper(auction, new SniperStateDisplayer())));
         auction.join();
     }
 
@@ -137,7 +117,7 @@ public class Main{
     private void startUserInterface() throws Exception {
         SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-                ui = new MainWindow(snipers);
+                ui = new MainWindow();
             }
         });
     }
@@ -168,18 +148,27 @@ public class Main{
         }
     }
 
-    public class SwingThreadSniperListener implements SniperListener {
-        public SwingThreadSniperListener(SnipersTableModel snipers) {
+    public class SniperStateDisplayer implements SniperListener {
+        @Override
+        public void sniperLost() {
+            showStatus(MainWindow.STATUS_LOST);
         }
 
         @Override
-        public void sniperStateChanged(final SniperSnapshot sniperSnapshot) {
-            snipers.sniperStateChanged(sniperSnapshot);
+        public void sniperBidding() {
+            showStatus(MainWindow.STATUS_BIDDING);
         }
 
         @Override
         public void processMessage(Chat chat, Message message) {
             //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        private void showStatus(final String status) {
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() { ui.showStatus(status);}
+            });
         }
     }
 }
