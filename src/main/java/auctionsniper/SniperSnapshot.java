@@ -21,6 +21,11 @@ import org.apache.commons.lang.builder.ToStringBuilder;
  * - Added closed() state change methods, which references SniperState.whenAuctionClosed().  This maps a state to
  *     the state the sniper would be in if the auction closed at that time.
  * - Added implementations for whenAuctionClosed().
+ *
+ * Changed Chapter 16:
+ * Code from GOOS, pg 182
+ * - Added isForSameItem() method to determine if a snapshot update is for the same auction as the current snapshot
+ *     instance.
  */
 public class SniperSnapshot {
     public final String itemId;
@@ -30,6 +35,10 @@ public class SniperSnapshot {
 
     public SniperSnapshot closed() {
         return new SniperSnapshot(itemId, lastPrice, lastBid, state.whenAuctionClosed());
+    }
+
+    public boolean isForSameItemAs(SniperSnapshot snapshot) {
+        return this.itemId.equals(snapshot.itemId);
     }
 
     public enum SniperState {

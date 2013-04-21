@@ -6,6 +6,8 @@ import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.packet.Message;
 
 import javax.swing.table.AbstractTableModel;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Extracted from MainWindow in Chapter 15:
@@ -17,18 +19,23 @@ import javax.swing.table.AbstractTableModel;
  * - Added textFor() method to translate a SniperState to a String by indexing STATUS_TEXT.  This is now used in
  *     getValueAt() to return the sniper status on the UI.
  * - Changed implementation of getValueAt to leverage Column.valueIn() rather than use a switch statement.
+ *
+ * Changed Chapter 16:
+ * Code derived from changes to Main in GOOS, pg 180, and unit tests on pg 180, 181
+ * - Replaced single SniperSnapshot with a List<Snapshot> to track multiple auction states.
+ * - Added method addSniper() to populate different sniper snapshots.
+ * - Changed sniperStateChanged() to first find the matching row before updating the snapshot to the correct state.
+ * - A failure to find a Snapshot to update is considered a programming error, and so a Defect is thrown.
  */
 public class SnipersTableModel extends AbstractTableModel implements SniperListener{
-    private final static SniperSnapshot STARTING_UP =
-            new SniperSnapshot("", 0, 0, SniperSnapshot.SniperState.JOINING);
     private static String[] STATUS_TEXT = {
             "Joining", "Bidding", "Winning", "Lost", "Won"
     };
-    private SniperSnapshot snapshot = STARTING_UP;
+    private List<SniperSnapshot> snapshots = new ArrayList<SniperSnapshot>();
 
     @Override
     public int getRowCount() {
-        return 1;
+        return snapshots.size();
     }
 
     @Override
@@ -38,13 +45,23 @@ public class SnipersTableModel extends AbstractTableModel implements SniperListe
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        return Column.at(columnIndex).valueIn(snapshot);
+        return Column.at(columnIndex).valueIn(snapshots.get(rowIndex));
     }
 
     @Override
     public void sniperStateChanged(SniperSnapshot newSnapshot) {
-        snapshot = newSnapshot;
-        fireTableRowsUpdated(0,0);
+        int row = rowMatching(newSnapshot);
+        snapshots.set(row, newSnapshot);
+        fireTableRowsUpdated(row, row);
+    }
+
+    private int rowMatching(SniperSnapshot newSnapshot) {
+        for (int i = 0; i < snapshots.size(); i++) {
+            if (newSnapshot.isForSameItemAs(snapshots.get(i))) {
+                return i;
+            }
+        }
+        throw new Defect("Cannot find match for " + newSnapshot);
     }
 
     @Override
@@ -59,5 +76,16 @@ public class SnipersTableModel extends AbstractTableModel implements SniperListe
     @Override
     public void processMessage(Chat chat, Message message) {
         //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    public void addSniper(SniperSnapshot snapshot) {
+        snapshots.add(snapshot);
+        fireTableDataChanged();
+    }
+
+    private class Defect extends RuntimeException {
+        public Defect(String s) {
+            super(s);
+        }
     }
 }

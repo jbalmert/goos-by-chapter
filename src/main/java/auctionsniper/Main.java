@@ -8,6 +8,8 @@ import org.jivesoftware.smack.packet.Message;
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.HashSet;
+import java.util.Set;
 
 import static java.lang.String.format;
 
@@ -67,13 +69,23 @@ import static java.lang.String.format;
  * - Renamed SniperStateDisplayer to SwingThreadSniperListener.  It now directly interacts with the SniperTableModel,
  *     which now implements the SniperListener interface.  This bypasses the MainWindow, which was simply forwarding
  *     the message to the table model.
+ *
+ * Changed Chapter 16:
+ * Code from GOOS, pg 178, 179, 180, 188
+ * - Finally defined the JOIN_COMMAND_FORMAT.  This came indirectly from GOOS, pg 178.
+ * - Changed main() to hold reference to connection
+ * - Changed notToBeGCd to a Set<Chat> to track multiple chats.
+ * - Changed joinAuction to join more than one auction at a time.
+ * - Added call to safelyAddItemToModel() in joinAuction
+ * - Changed main() to add a UserRequestListener for the newly created connection to the auction chat.  This
+ *     is actually accomplished indirectly by calling the SnipersTableModel.addSniper() method.
  */
 public class Main{
     private final SnipersTableModel snipers = new SnipersTableModel();
-    public static final String JOIN_COMMAND_FORMAT = "";
+    public static final String JOIN_COMMAND_FORMAT = "SOLVersion: 1.1; Command: JOIN";
     public static final String BID_COMMAND_FORMAT = "SOLVersion: 1.1; Command: BID; Price: %d;";
 
-    private Chat notToBeGCd;
+    private Set<Chat> notToBeGCd = new HashSet<Chat>();
     public static final int ARG_HOSTNAME = 0;
     public static final int ARG_USERNAME = 1;
     public static final int ARG_PASSWORD = 2;
@@ -93,24 +105,36 @@ public class Main{
 
     public static void main(String... args) throws Exception{
         Main main = new Main();
-        main.joinAuction(
-                connectTo(args[ARG_HOSTNAME], args[ARG_USERNAME], args[ARG_PASSWORD]),
-                args[ARG_ITEM_ID]);
+        XMPPConnection connection = connectTo(args[ARG_HOSTNAME], args[ARG_USERNAME], args[ARG_PASSWORD]);
+        main.disconnectWhenUICloses(connection);
+        main.addUserRequestListenerFor(connection);
     }
 
-    private void joinAuction(XMPPConnection connection, String itemId)
-            throws XMPPException{
-        disconnectWhenUICloses(connection);
+    private void addUserRequestListenerFor(final XMPPConnection connection) {
+        ui.addUserRequestListener(new UserRequestListener() {
+            @Override
+            public void joinAuction(String itemId) {
+                snipers.addSniper(SniperSnapshot.joining(itemId));
+                Chat chat = connection.getChatManager().
+                        createChat(auctionId(itemId, connection), null);
+                notToBeGCd.add(chat);
 
-        final Chat chat = connection.getChatManager().createChat(
-                auctionId(itemId, connection), null);
-        this.notToBeGCd = chat;
+                Auction auction = new XMPPAuction(chat);
+                chat.addMessageListener(
+                        new AuctionMessageTranslator(connection.getUser(), new AuctionSniper(auction,
+                                new SwingThreadSniperListener(snipers), itemId)));
+                auction.join();
+            }
+        });
+    }
 
-        Auction auction = new XMPPAuction(chat);
-        chat.addMessageListener(
-                new AuctionMessageTranslator(connection.getUser(), new AuctionSniper(auction,
-                        new SwingThreadSniperListener(snipers), itemId)));
-        auction.join();
+    private void safelyAddItemToModel(final String itemId) throws Exception{
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                snipers.addSniper(SniperSnapshot.joining(itemId));
+            }
+        });
     }
 
     private void disconnectWhenUICloses(final XMPPConnection connection) {

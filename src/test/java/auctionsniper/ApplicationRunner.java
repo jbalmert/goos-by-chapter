@@ -30,9 +30,16 @@ import static auctionsniper.ui.SnipersTableModel.*;
  *     expected to be able to verify values of itemId, lastPrice, and lastBid, in addition to the original
  *     status text.
  * - Added assertions for the JTable column headers.
+ *
+ * Changed Chapter 16:
+ * Code from GOOS, pg 176, 177, 184
+ * - Refactored to have an auction sent as a parameter on all the assertion methods (sniperHasShownIsBidding(), etc) in
+ *     preparation for bidding in multiple auctions.
+ * - Changed startBiddingIn to accept a variable number of auctions as input.
+ * - Changed startBiddingIn to leverage the new input field and "Join Auction" button as the data entry point for the
+ *     application rather than directly inject the values into JTable model.
  */
 public class ApplicationRunner {
-    private String itemId;
     public static final String SNIPER_ID = "sniper";
     public static final String SNIPER_PASSWORD = "sniper";
     public static final String XMPP_HOSTNAME = "localhost";
@@ -42,12 +49,20 @@ public class ApplicationRunner {
 
     private AuctionSniperDriver driver;
 
-    public void startBiddingIn(final FakeAuctionServer auction) {
-        itemId = auction.getItemId();
+    public void startBiddingIn(final FakeAuctionServer... auctions) {
+        startSniper(auctions);
+         for (FakeAuctionServer auction: auctions) {
+             final String itemId = auction.getItemId();
+             driver.startBiddingFor(itemId);
+             driver.showsSniperStatus(itemId, 0, 0, textFor(SniperSnapshot.SniperState.JOINING));
+         }
+    }
+
+    public void startSniper(final FakeAuctionServer... auctions) {
         Thread thread = new Thread("Test Application") {
             @Override public void run() {
                 try {
-                    Main.main(XMPP_HOSTNAME, SNIPER_ID, SNIPER_PASSWORD, auction.getItemId());
+                    Main.main(arguments(auctions));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -58,11 +73,20 @@ public class ApplicationRunner {
         driver = new AuctionSniperDriver(1000);
         driver.hasTitle(MainWindow.APPLICATION_TITLE);
         driver.hasColumnTitles();
-        driver.showsSniperStatus(JOINING.itemId, JOINING.lastPrice,
-                JOINING.lastBid, textFor(SniperSnapshot.SniperState.JOINING));
     }
 
-    public void showsSniperHasLostAuction() {
+    protected static String[] arguments(FakeAuctionServer... auctions) {
+        String[] arguments = new String[auctions.length + 3];
+        arguments[0] = XMPP_HOSTNAME;
+        arguments[1] = SNIPER_ID;
+        arguments[2] = SNIPER_PASSWORD;
+        for (int i=0; i< auctions.length; i++) {
+            arguments[i+3] = auctions[i].getItemId();
+        }
+        return arguments;
+    }
+
+    public void showsSniperHasLostAuction(FakeAuctionServer auction) {
         driver.showsSniperStatus(STATUS_LOST);
     }
 
@@ -72,18 +96,18 @@ public class ApplicationRunner {
         }
     }
 
-    public void hasShownSniperIsBidding(int lastPrice, int lastBid) {
-        driver.showsSniperStatus(itemId, lastPrice, lastBid,
+    public void hasShownSniperIsBidding(FakeAuctionServer auction, int lastPrice, int lastBid) {
+        driver.showsSniperStatus(auction.getItemId(), lastPrice, lastBid,
                 MainWindow.STATUS_BIDDING);
     }
 
-    public void hasShownSniperIsWinning(int winningBid) {
-        driver.showsSniperStatus(itemId, winningBid, winningBid,
+    public void hasShownSniperIsWinning(FakeAuctionServer auction, int winningBid) {
+        driver.showsSniperStatus(auction.getItemId(), winningBid, winningBid,
                 MainWindow.STATUS_WINNING);
     }
 
-    public void showsSniperHasWonAuction(int lastPrice) {
-        driver.showsSniperStatus(itemId, lastPrice, lastPrice,
+    public void showsSniperHasWonAuction(FakeAuctionServer auction, int lastPrice) {
+        driver.showsSniperStatus(auction.getItemId(), lastPrice, lastPrice,
                 MainWindow.STATUS_WON);
     }
 }
