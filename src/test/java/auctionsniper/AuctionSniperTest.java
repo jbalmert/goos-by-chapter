@@ -32,6 +32,9 @@ import static auctionsniper.SniperSnapshot.SniperState.*;
  *     status for display.
  * - Changed the sniperBidding() calls to sniperStateChanged(), a more generic method which can handle all state
  *     changes.
+ *
+ * Changed Chapter 17:
+ * - Adjusted instantiation of AuctionSniper to use the new order of arguments.  itemId is now the first argument.
  */
 
 @RunWith(MockitoJUnitRunner.class)
@@ -45,7 +48,8 @@ public class AuctionSniperTest {
 
     @Before
     public void initializeSniper() {
-        sniper = new AuctionSniper(auction, sniperListener, ITEM_ID);
+        sniper = new AuctionSniper(ITEM_ID, auction);
+        sniper.addSniperListener(sniperListener);
     }
 
     @Test

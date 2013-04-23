@@ -1,7 +1,9 @@
-package auctionsniper;
+package auctionsniper.xmpp;
 
 import static org.mockito.Mockito.*;
 
+import auctionsniper.AuctionEventListener;
+import auctionsniper.xmpp.AuctionMessageTranslator;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.packet.Message;
 import org.junit.Before;
@@ -18,9 +20,12 @@ import org.mockito.runners.MockitoJUnitRunner;
  * - notifiesBidDetailsWhenCurrentPriceMessageReceived() forces a more complex implementation capable of
  *     distinguishing different messages.
  *
- * Added Chapter 14:
+ * Changed Chapter 14:
  * - Added sniperId parameter to AuctionMessageTranslator constructor to allow the translator to determine if the
  * current bid is from the sniper or someone else.
+ *
+ * Changed Chapter 17:
+ * Moved to xmpp package as described in GOOS, pg 195.
  */
 @RunWith(MockitoJUnitRunner.class)
 public class AuctionMessageTranslatorTest {

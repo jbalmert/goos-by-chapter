@@ -21,18 +21,25 @@ package auctionsniper;
  *     each state (bidding, winning, losing, etc.).
  * - Changed implementation of currentPrice to switch on priceSource rather than use the isWinning flag.
  * - Changed implementation of auctionClosed() to leverage snapshot.closed();
+ *
+ * Changed Chapter 17:
+ * - Changed the order of the constructor arguments to match the book.  I'm not sure if I just got these wrong before
+ * or the text is inconsistent.
  */
 public class AuctionSniper implements AuctionEventListener{
     private SniperSnapshot snapshot;
-    private final SniperListener sniperListener;
+    private SniperListener sniperListener;
     private final Auction auction;
     private boolean isWinning;
 
-    public AuctionSniper(Auction auction, SniperListener sniperListener, String itemId) {
-        this.sniperListener = sniperListener;
+    public AuctionSniper(String itemId, Auction auction) {
         this.auction = auction;
         this.snapshot = SniperSnapshot.joining(itemId);
 
+    }
+
+    public void addSniperListener(SniperListener listener) {
+        this.sniperListener = listener;
     }
 
     public void auctionClosed() {
@@ -55,7 +62,12 @@ public class AuctionSniper implements AuctionEventListener{
         notifyChange();
     }
 
+    public SniperSnapshot getSnapshot() {
+        return snapshot;
+    }
+
     private void notifyChange() {
         sniperListener.sniperStateChanged(snapshot);
     }
+
 }

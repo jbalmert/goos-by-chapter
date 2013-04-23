@@ -1,13 +1,14 @@
 package auctionsniper.ui;
 
-import auctionsniper.SniperListener;
-import auctionsniper.SniperSnapshot;
+import auctionsniper.*;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.packet.Message;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Extracted from MainWindow in Chapter 15:
@@ -26,8 +27,16 @@ import java.util.List;
  * - Added method addSniper() to populate different sniper snapshots.
  * - Changed sniperStateChanged() to first find the matching row before updating the snapshot to the correct state.
  * - A failure to find a Snapshot to update is considered a programming error, and so a Defect is thrown.
+ *
+ * Changed Chapter 17:
+ * Code from GOOS, pg 199
+ * - Moved SwingThreadSniperListener inner class here.  It is a better fit as it is concerned with Swing code.
+ * - Added SniperCollector interface and implementation.  In doing so, this class no longer accepts SniperSnapshot
+ *     instances to add to the table model.  Instead, it now accepts AuctionSnipers, and asks it for its snapshot.
+ *     This also provides an opportunity to add the SwingThreadSniperListener as a SniperListener to the AuctionSniper.
  */
-public class SnipersTableModel extends AbstractTableModel implements SniperListener{
+public class SnipersTableModel extends AbstractTableModel implements SniperListener, PortfolioListener {
+
     private static String[] STATUS_TEXT = {
             "Joining", "Bidding", "Winning", "Lost", "Won"
     };
@@ -78,14 +87,39 @@ public class SnipersTableModel extends AbstractTableModel implements SniperListe
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    public void addSniper(SniperSnapshot snapshot) {
-        snapshots.add(snapshot);
-        fireTableDataChanged();
+    @Override
+    public void sniperAdded(AuctionSniper sniper) {
+        addSniperSnapshot(sniper.getSnapshot());
+        sniper.addSniperListener(new SwingThreadSniperListener(this));
+    }
+
+    private void addSniperSnapshot(SniperSnapshot sniperSnapshot){
+        snapshots.add(sniperSnapshot);
+        int row = snapshots.size() - 1;
+        fireTableRowsInserted(row, row);
     }
 
     private class Defect extends RuntimeException {
         public Defect(String s) {
             super(s);
+        }
+    }
+
+    public class SwingThreadSniperListener implements SniperListener {
+        private SnipersTableModel snipers;
+
+        public SwingThreadSniperListener(SnipersTableModel snipers) {
+            this.snipers = snipers;
+        }
+
+        @Override
+        public void sniperStateChanged(final SniperSnapshot sniperSnapshot) {
+            snipers.sniperStateChanged(sniperSnapshot);
+        }
+
+        @Override
+        public void processMessage(Chat chat, Message message) {
+            //To change body of implemented methods use File | Settings | File Templates.
         }
     }
 }

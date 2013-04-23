@@ -1,5 +1,6 @@
 package auctionsniper.ui;
 
+import auctionsniper.SniperPortfolio;
 import auctionsniper.SniperSnapshot;
 import auctionsniper.UserRequestListener;
 
@@ -32,14 +33,16 @@ import java.util.Set;
  *     Announcer class to handle firing events to multiple instances of the same class.  It's a pretty slick
  *     idea, but unfortunately, it ships with JMock, and I didn't want to implement my own copy here.  Instead,
  *     I used a simple set, and iterated over the set to ensure every listener receives a message.
+ *
+ * Changed Chapter 17:
+ * Code from GOOS, pg 200
+ * - Removed SnipersTableModel as a constructor argument.  Instead, replaced it with a SniperPortfolio.  The
+ *     SnipersTableModel is now instantiated when creating the JTable, and immediately registered as a portfolio
+ *     listener.
  */
 public class MainWindow extends JFrame{
     private final Set<UserRequestListener> userRequests = new HashSet<UserRequestListener>();
-    private final SnipersTableModel snipers;
     private static final String MAIN_WINDOW_NAME = "Auction Sniper Main";
-    public static final String SNIPER_STATUS_NAME = "sniper status";
-    public static final String STATUS_JOINING = "Joining";
-    public static final String STATUS_LOST = "Lost";
     public static final String STATUS_BIDDING = "Bidding";
     public static final String STATUS_WINNING = "Winning";
     public static final String STATUS_WON = "Won";
@@ -49,11 +52,10 @@ public class MainWindow extends JFrame{
     public static final String JOIN_BUTTON_NAME = "join button";
 
 
-    public MainWindow(SnipersTableModel snipers) {
+    public MainWindow(SniperPortfolio portfolio) {
         super(APPLICATION_TITLE);
-        this.snipers = snipers;
         setName(MAIN_WINDOW_NAME);
-        fillContentPane(makeSnipersTable(), makeControls());
+        fillContentPane(makeSnipersTable(portfolio), makeControls());
         pack();
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setVisible(true);
@@ -89,17 +91,12 @@ public class MainWindow extends JFrame{
         contentPane.add(new JScrollPane(snipersTable), BorderLayout.CENTER);
     }
 
-    private JTable makeSnipersTable() {
-        final JTable snipersTable = new JTable(snipers);
+    private JTable makeSnipersTable(SniperPortfolio portfolio) {
+        SnipersTableModel model = new SnipersTableModel();
+        portfolio.addPortfolioListener(model);
+        final JTable snipersTable = new JTable(model);
         snipersTable.setName(SNIPERS_TABLE_NAME);
         return snipersTable;
-    }
-
-    private static JLabel createLabel(String initialText) {
-        JLabel result = new JLabel(initialText);
-        result.setName(SNIPER_STATUS_NAME);
-        result.setBorder(new LineBorder(Color.BLACK));
-        return result;
     }
 
     public void addUserRequestListener(UserRequestListener userRequestListener) {

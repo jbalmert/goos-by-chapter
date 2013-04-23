@@ -1,7 +1,8 @@
-package auctionsniper;
+package auctionsniper.xmpp;
 
 import static  auctionsniper.AuctionEventListener.PriceSource.*;
 
+import auctionsniper.AuctionEventListener;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.packet.Message;
@@ -22,6 +23,9 @@ import java.util.HashMap;
  * * Added Chapter 14:
  * - Added sniperId parameter to AuctionMessageTranslator constructor to allow the translator to determine if the
  *     current bid is from the sniper or someone else.
+ *
+ * - Changed Chapter 17:
+ * Moved to xmpp package as described in GOOS, pg 195.
  */
 public class AuctionMessageTranslator implements MessageListener {
     private final AuctionEventListener listener;
