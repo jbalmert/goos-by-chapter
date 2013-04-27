@@ -34,11 +34,15 @@ import java.util.Set;
  * - Added SniperCollector interface and implementation.  In doing so, this class no longer accepts SniperSnapshot
  *     instances to add to the table model.  Instead, it now accepts AuctionSnipers, and asks it for its snapshot.
  *     This also provides an opportunity to add the SwingThreadSniperListener as a SniperListener to the AuctionSniper.
+ *
+ * Changed Chapter 18:
+ * Code from GOOS, pg 207
+ * - Added "Losing" to STATUS_TEXT.
  */
 public class SnipersTableModel extends AbstractTableModel implements SniperListener, PortfolioListener {
 
     private static String[] STATUS_TEXT = {
-            "Joining", "Bidding", "Winning", "Lost", "Won"
+            "Joining", "Bidding", "Winning", "Losing", "Lost", "Won"
     };
     private List<SniperSnapshot> snapshots = new ArrayList<SniperSnapshot>();
 

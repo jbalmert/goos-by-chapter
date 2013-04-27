@@ -3,6 +3,7 @@ package auctionsniper;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
+import sun.rmi.log.LogOutputStream;
 
 /**
  * Added Chapter 15:
@@ -26,6 +27,11 @@ import org.apache.commons.lang.builder.ToStringBuilder;
  * Code from GOOS, pg 182
  * - Added isForSameItem() method to determine if a snapshot update is for the same auction as the current snapshot
  *     instance.
+ *
+ * Changed Chapter 18:
+ * Code from GOOS, pg 207
+ * - Added LOSING SniperState
+ * - Added losing() SniperState transition method.
  */
 public class SniperSnapshot {
     public final String itemId;
@@ -55,6 +61,11 @@ public class SniperSnapshot {
         WINNING {
             @Override public SniperState whenAuctionClosed() {
                 return WON;
+            }
+        },
+        LOSING {
+            @Override public SniperState whenAuctionClosed() {
+                return LOST;
             }
         },
         LOST,
@@ -88,6 +99,10 @@ public class SniperSnapshot {
 
     public static SniperSnapshot joining(String itemId) {
         return new SniperSnapshot(itemId, 0, 0, SniperState.JOINING);
+    }
+
+    public SniperSnapshot losing(int price) {
+        return new SniperSnapshot(itemId, price, lastBid, SniperState.LOSING);
     }
 
     @Override

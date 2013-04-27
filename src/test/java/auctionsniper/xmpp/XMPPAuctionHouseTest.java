@@ -19,6 +19,10 @@ import java.util.concurrent.CountDownLatch;
  * - Renamed to XMPPAuctionHouseTest as described in GOOS, pg 197.  Replaced XMPPConnection reference with
  *     AuctionHouse reference to fix the integration tests broken by the refactoring of adding the AuctionHouse
  *     interface to Main.
+ *
+ * Changed Chapter 18:
+ * Code not in GOOS:
+ * - Updated tests to take fix compilation issues from introduction Item object to AuctionHouse interface.
  */
 public class XMPPAuctionHouseTest {
 
@@ -34,7 +38,7 @@ public class XMPPAuctionHouseTest {
         auctionHouse = XMPPAuctionHouse.connect(hostname, username, password);
         CountDownLatch auctionWasClosed = new CountDownLatch(1);
 
-        Auction auction = auctionHouse.auctionFor(auctionServer.getItemId());
+        Auction auction = auctionHouse.auctionFor(new Item(auctionServer.getItemId(), Integer.MAX_VALUE));
         auction.addAuctionEventListener(auctionClosedListener(auctionWasClosed));
 
         auctionServer.startSellingItem();

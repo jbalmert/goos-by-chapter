@@ -38,24 +38,34 @@ import static auctionsniper.ui.SnipersTableModel.*;
  * - Changed startBiddingIn to accept a variable number of auctions as input.
  * - Changed startBiddingIn to leverage the new input field and "Join Auction" button as the data entry point for the
  *     application rather than directly inject the values into JTable model.
+ *
+ * Changed Chapter 18:
+ * Code not in GOOS, but described on pg 207.
+ * - Added startBiddingWithStopPrice().  To keep backward compatibility with startBiddingIn(), the implementation
+ *     of startBiddingIn() was changed to call startBiddingWithStopPrice() with a default stopPrice of
+ *     Integer.MAX_VALUE.
+ * - Added hasShownSniperIsLosing() to drive out new LOSING state.
  */
 public class ApplicationRunner {
     public static final String SNIPER_ID = "sniper";
     public static final String SNIPER_PASSWORD = "sniper";
     public static final String XMPP_HOSTNAME = "localhost";
-    private static final String STATUS_LOST = "Lost";
     public static final String SNIPER_XMPP_ID = "sniper@localhost/Auction";
     private final SniperSnapshot JOINING = SniperSnapshot.joining("");
 
     private AuctionSniperDriver driver;
 
     public void startBiddingIn(final FakeAuctionServer... auctions) {
+        startsBiddingWithStopPrice(Integer.MAX_VALUE, auctions);
+    }
+
+    public void startsBiddingWithStopPrice(int stopPrice, FakeAuctionServer... auctions) {
         startSniper(auctions);
-         for (FakeAuctionServer auction: auctions) {
-             final String itemId = auction.getItemId();
-             driver.startBiddingFor(itemId);
-             driver.showsSniperStatus(itemId, 0, 0, textFor(SniperSnapshot.SniperState.JOINING));
-         }
+        for (FakeAuctionServer auction: auctions) {
+            final String itemId = auction.getItemId();
+            driver.startBiddingFor(itemId, stopPrice);
+            driver.showsSniperStatus(itemId, 0, 0, textFor(SniperSnapshot.SniperState.JOINING));
+        }
     }
 
     public void startSniper(final FakeAuctionServer... auctions) {
@@ -86,9 +96,7 @@ public class ApplicationRunner {
         return arguments;
     }
 
-    public void showsSniperHasLostAuction(FakeAuctionServer auction) {
-        driver.showsSniperStatus(STATUS_LOST);
-    }
+
 
     public void stop() {
         if (driver != null) {
@@ -109,5 +117,15 @@ public class ApplicationRunner {
     public void showsSniperHasWonAuction(FakeAuctionServer auction, int lastPrice) {
         driver.showsSniperStatus(auction.getItemId(), lastPrice, lastPrice,
                 MainWindow.STATUS_WON);
+    }
+
+    public void hasShownSniperIsLosing(FakeAuctionServer auction, int lastPrice, int lastBid) {
+        driver.showsSniperStatus(auction.getItemId(), lastPrice, lastBid,
+                MainWindow.STATUS_LOSING);
+    }
+
+    public void showsSniperHasLostAuction(FakeAuctionServer auction, int lastPrice, int lastBid) {
+        driver.showsSniperStatus(auction.getItemId(), lastPrice, lastBid,
+                MainWindow.STATUS_LOST);
     }
 }

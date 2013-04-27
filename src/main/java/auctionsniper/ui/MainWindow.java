@@ -1,5 +1,6 @@
 package auctionsniper.ui;
 
+import auctionsniper.Item;
 import auctionsniper.SniperPortfolio;
 import auctionsniper.SniperSnapshot;
 import auctionsniper.UserRequestListener;
@@ -39,6 +40,12 @@ import java.util.Set;
  * - Removed SnipersTableModel as a constructor argument.  Instead, replaced it with a SniperPortfolio.  The
  *     SnipersTableModel is now instantiated when creating the JTable, and immediately registered as a portfolio
  *     listener.
+ *
+ * Changed Chapter 18:
+ * Code from GOOS, pg 210
+ * - Updated joinActionButton.addActionListener to have the anonymous implementation of ActionListener
+ *     announce events to the updated UserRequestListener with an Item instead of a string.  Also, added some
+ *     helper methods to make this method cleaner.
  */
 public class MainWindow extends JFrame{
     private final Set<UserRequestListener> userRequests = new HashSet<UserRequestListener>();
@@ -46,10 +53,13 @@ public class MainWindow extends JFrame{
     public static final String STATUS_BIDDING = "Bidding";
     public static final String STATUS_WINNING = "Winning";
     public static final String STATUS_WON = "Won";
+    public static final String STATUS_LOST = "Lost";
+    public static final String STATUS_LOSING = "Losing";
     private static final String SNIPERS_TABLE_NAME = "Snipers";
     public static final String APPLICATION_TITLE = "Auction Sniper";
     public static final String NEW_ITEM_ID_NAME = "item id";
     public static final String JOIN_BUTTON_NAME = "join button";
+    public static final String NEW_ITEM_STOP_PRICE_NAME = "stop price";
 
 
     public MainWindow(SniperPortfolio portfolio) {
@@ -66,7 +76,11 @@ public class MainWindow extends JFrame{
         final JTextField itemIdField = new JTextField();
         itemIdField.setColumns(25);
         itemIdField.setName(NEW_ITEM_ID_NAME);
+        final JTextField stopPriceField = new JTextField();
+        stopPriceField.setColumns(20);
+        stopPriceField.setName(NEW_ITEM_STOP_PRICE_NAME);
         controls.add(itemIdField);
+        controls.add(stopPriceField);
 
         JButton joinAuctionButton = new JButton("Join Auction");
         joinAuctionButton.setName(JOIN_BUTTON_NAME);
@@ -74,8 +88,16 @@ public class MainWindow extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 for (UserRequestListener listener : userRequests) {
-                    listener.joinAuction(itemIdField.getText());
+                    listener.joinAuction(new Item(itemId(), stopPrice()));
                 }
+            }
+
+            public String itemId() {
+                return itemIdField.getText();
+            }
+
+            public int stopPrice() {
+                return Integer.parseInt(stopPriceField.getText().trim());
             }
         });
         controls.add(joinAuctionButton);

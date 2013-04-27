@@ -26,6 +26,10 @@ import org.junit.Test;
  * Code from GOOS, pg 175, 176
  * - Added auction as parameter to the ApplicationRunner methods to support multiple auctions at once.
  * - Added sniperBidsForMultipleItems() to test bidding for multiple auctions.
+ *
+ * Changed Chapter 18:
+ * Code from GOOS, pg 206
+ * - Added sniperLosesAnAuctionWhenThePriceIsTooHigh() to drive out implementation of a stop price.
  */
 public class AuctionSniperEndToEndTest {
     private final FakeAuctionServer auction = new FakeAuctionServer("item-54321");
@@ -38,7 +42,7 @@ public class AuctionSniperEndToEndTest {
         application.startBiddingIn(auction);
         auction.hasReceivedJoinRequestFromSniper(ApplicationRunner.SNIPER_XMPP_ID);
         auction.announcesClosed();
-        application.showsSniperHasLostAuction(auction);
+        application.showsSniperHasLostAuction(auction, 0, 0);
     }
 
     @Test
@@ -54,7 +58,7 @@ public class AuctionSniperEndToEndTest {
         auction.hasReceivedBid(1098, ApplicationRunner.SNIPER_XMPP_ID);
 
         auction.announcesClosed();
-        application.showsSniperHasLostAuction(auction);
+        application.showsSniperHasLostAuction(auction, 1000, 1098);
     }
 
     @Test
@@ -102,6 +106,26 @@ public class AuctionSniperEndToEndTest {
 
         application.showsSniperHasWonAuction(auction, 1098);
         application.showsSniperHasWonAuction(auction2, 521);
+    }
+
+    @Test
+    public void sniperLosesAnAuctionWhenThePriceIsTooHigh() throws Exception {
+        auction.startSellingItem();
+        application.startsBiddingWithStopPrice(1100, auction);
+        auction.hasReceivedJoinRequestFromSniper(ApplicationRunner.SNIPER_XMPP_ID);
+        auction.reportPrice(1000, 98, "other bidder");
+        application.hasShownSniperIsBidding(auction, 1000, 1098);
+
+        auction.hasReceivedBid(1098, ApplicationRunner.SNIPER_XMPP_ID);
+
+        auction.reportPrice(1197, 110, "third party");
+        application.hasShownSniperIsLosing(auction, 1197, 1098);
+
+        auction.reportPrice(1207, 10, "fourth party");
+        application.hasShownSniperIsLosing(auction, 1207, 1098);
+
+        auction.announcesClosed();
+        application.showsSniperHasLostAuction(auction, 1207, 1098);
     }
 
     @After public void stopAuction() {

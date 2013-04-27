@@ -25,16 +25,23 @@ package auctionsniper;
  * Changed Chapter 17:
  * - Changed the order of the constructor arguments to match the book.  I'm not sure if I just got these wrong before
  * or the text is inconsistent.
+ *
+ * Changed Chapter 18:
+ * Code from GOOS, pg 211
+ * - Changed implementation of currentPrice to take into account the new Item domain concept.  This now
+ *    asks the item if a new bid is allowed.  The Item will check the bid against the stopPrice.  If the bid is
+ *    not allowed, the sniper announces it is losing.
  */
 public class AuctionSniper implements AuctionEventListener{
     private SniperSnapshot snapshot;
     private SniperListener sniperListener;
     private final Auction auction;
-    private boolean isWinning;
+    private final Item item;
 
-    public AuctionSniper(String itemId, Auction auction) {
+    public AuctionSniper(Item item, Auction auction) {
         this.auction = auction;
-        this.snapshot = SniperSnapshot.joining(itemId);
+        this.item = item;
+        this.snapshot = SniperSnapshot.joining(item.identifier);
 
     }
 
@@ -55,8 +62,12 @@ public class AuctionSniper implements AuctionEventListener{
                 break;
             case FromOtherBidder:
                 int bid = price + increment;
-                auction.bid(bid);
-                snapshot = snapshot.bidding(price, bid);
+                if (item.allowsBid(bid)) {
+                    auction.bid(bid);
+                 snapshot = snapshot.bidding(price, bid);
+                } else {
+                    snapshot = snapshot.losing(price);
+                }
                 break;
         }
         notifyChange();

@@ -11,6 +11,11 @@ import java.util.Set;
 /**
  * Added Chapter 17:
  * Code from GOOS, pg 197
+ *
+ * Changed Chapter 18:
+ * Code not in GOOS.
+ * - Updated to accept Item instead of Strings as mandated by the UserRequestListener.
+ * - Pushed the new Item into the AuctionSniper constructor as well.
  */
 public class SniperLauncher implements UserRequestListener {
 
@@ -23,9 +28,9 @@ public class SniperLauncher implements UserRequestListener {
     }
 
     @Override
-    public void joinAuction(String itemId) {
-        Auction auction = auctionHouse.auctionFor(itemId);
-        AuctionSniper sniper = new AuctionSniper(itemId, auction);
+    public void joinAuction(Item item) {
+        Auction auction = auctionHouse.auctionFor(item);
+        AuctionSniper sniper = new AuctionSniper(item, auction);
         auction.addAuctionEventListener(sniper);
         collector.addSniper(sniper);
         auction.join();

@@ -1,6 +1,7 @@
 package auctionsniper.xmpp;
 
 import auctionsniper.Auction;
+import auctionsniper.Item;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 
@@ -9,6 +10,10 @@ import static java.lang.String.format;
 /**
  * Added Chapter 17:
  * Code not directly listed in GOOS, but it explains what to extract from Main on pages 196 adn 197.
+ *
+ * Changed Chapter 18:
+ * Code not in GOOS.
+ * - Updated to use Item instead of a String in auctionFor()
  */
 public class XMPPAuctionHouse implements AuctionHouse{
     public static final String AUCTION_RESOURCE = "Auction";
@@ -26,8 +31,8 @@ public class XMPPAuctionHouse implements AuctionHouse{
     }
 
     @Override
-    public Auction auctionFor(String itemId) {
-        return new XMPPAuction(connection, auctionId(itemId));
+    public Auction auctionFor(Item itemId) {
+        return new XMPPAuction(connection, auctionId(itemId.identifier));
     }
 
     @Override

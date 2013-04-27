@@ -30,6 +30,12 @@ import static org.hamcrest.Matchers.equalTo;
  * - Added capability to use new input field on UI for adding new auction itemIds to bid on.  The driver
  *     can now inject the item id into the text field, and then click the button to fire off the event to add
  *     it to the JTable.
+ *
+ * Changed Chapter 18:
+ * Code from GOOS, pg 207
+ * - Added new instance of startBiddingFor() with a stopPrice parameter.
+ * - Changed itemIdField() to a more generic textFor() method which takes in the name of the field to find
+ *    text.  This makes it trivial to find the text for both the item id and stop price from the UI.
  */
 public class AuctionSniperDriver extends JFrameDriver{
     public AuctionSniperDriver(int timeoutMillis) {
@@ -58,19 +64,22 @@ public class AuctionSniperDriver extends JFrameDriver{
                 withLabelText("Last Bid"), withLabelText("State")));
     }
 
-    public void startBiddingFor(String itemId) {
-        itemIdField().replaceAllText(itemId);
+    public void startBiddingFor(String itemId, int stopPrice) {
+        textFor(MainWindow.NEW_ITEM_ID_NAME).replaceAllText(itemId);
+        textFor(MainWindow.NEW_ITEM_STOP_PRICE_NAME).replaceAllText(String.valueOf(stopPrice));
         bidButton().click();
     }
 
-    private JTextFieldDriver itemIdField() {
-        JTextFieldDriver newItemId =
-                new JTextFieldDriver(this, JTextField.class, named(MainWindow.NEW_ITEM_ID_NAME));
-        newItemId.focusWithMouse();
-        return newItemId;
+    private JTextFieldDriver textFor(String fieldName) {
+        JTextFieldDriver field =
+                new JTextFieldDriver(this, JTextField.class, named(fieldName));
+        field.focusWithMouse();
+        return field;
     }
 
     private JButtonDriver bidButton() {
         return new JButtonDriver(this, JButton.class, named(MainWindow.JOIN_BUTTON_NAME));
     }
+
+
 }

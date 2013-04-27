@@ -1,5 +1,6 @@
 package auctionsniper;
 
+import static auctionsniper.AuctionEventListener.*;
 import static org.mockito.Mockito.*;
 import static auctionsniper.AuctionEventListener.PriceSource.*;
 import org.junit.Before;
@@ -35,12 +36,22 @@ import static auctionsniper.SniperSnapshot.SniperState.*;
  *
  * Changed Chapter 17:
  * - Adjusted instantiation of AuctionSniper to use the new order of arguments.  itemId is now the first argument.
+ *
+ * Changed Chapter 18:
+ * Code from GOOS, pg 210
+ * - Code for doesNotBidAndReportsLosingIfSubsequentPricesIsAboveStopPrice() added from text.  The implementations
+ *     for doesNotBidAndReportsLosingIfFirstPriceIsAboveStopPrice(),
+ *     reportsLostIfAuctionClosesWhenLosing(),
+ *     continuesToBeLosingOnceStopPriceHasBeenReached(), and
+ *     doesNotBidAndReportsLosingIfPriceAfterWinningIsAboveStopPrice() are mentioned as extra tests, but the code
+ *     is left as an exercise for the reader.  Implementations for these have been built.
  */
 
 @RunWith(MockitoJUnitRunner.class)
 public class AuctionSniperTest {
 
     private static final String ITEM_ID = "auction-1234";
+    Item item = new Item(ITEM_ID, 1234);
     @Mock Auction auction;
     @Mock SniperListener sniperListener;
 
@@ -48,7 +59,7 @@ public class AuctionSniperTest {
 
     @Before
     public void initializeSniper() {
-        sniper = new AuctionSniper(ITEM_ID, auction);
+        sniper = new AuctionSniper(item, auction);
         sniper.addSniperListener(sniperListener);
     }
 
@@ -109,4 +120,47 @@ public class AuctionSniperTest {
                 new SniperSnapshot(ITEM_ID, 123, 0, WON));
     }
 
+    @Test
+    public void doesNotBidAndReportsLosingIfSubsequentPriceIsAboveStopPrice() {
+        int bid = 123 + 45;
+        sniper.currentPrice(123, 45, PriceSource.FromOtherBidder);
+        sniper.currentPrice(2345, 23, PriceSource.FromOtherBidder);
+
+        verify(sniperListener).sniperStateChanged(new SniperSnapshot(ITEM_ID, 2345, bid, LOSING));
+    }
+
+    @Test
+    public void doesNotBidAndReportsLosingIfFirstPriceIsAboveStopPrice() {
+        sniper.currentPrice(1235, 45, PriceSource.FromOtherBidder);
+
+        verify(sniperListener).sniperStateChanged(new SniperSnapshot(ITEM_ID, 1235, 0, LOSING));
+    }
+
+    @Test
+    public void reportsLostIfAuctionClosesWhenLosing() {
+        sniper.currentPrice(1235, 45, PriceSource.FromOtherBidder);
+        sniper.auctionClosed();
+
+        verify(sniperListener).sniperStateChanged(new SniperSnapshot(ITEM_ID, 1235, 0, LOST));
+    }
+
+    @Test
+    public void continuesToBeLosingOnceStopPriceHasBeenReached() {
+        sniper.currentPrice(1235, 45, PriceSource.FromOtherBidder);
+        sniper.currentPrice(2000, 45, PriceSource.FromOtherBidder);
+
+        verify(sniperListener).sniperStateChanged(new SniperSnapshot(ITEM_ID, 1235, 0, LOSING));
+        verify(sniperListener).sniperStateChanged(new SniperSnapshot(ITEM_ID, 2000, 0, LOSING));
+    }
+
+    @Test
+    public void doesNotBidAndReportsLosingIfPriceAfterWinningIsAboveStopPrice() {
+        sniper.currentPrice(123, 45, PriceSource.FromSniper);
+        sniper.currentPrice(2000, 45, PriceSource.FromOtherBidder);
+
+        verify(sniperListener).sniperStateChanged(
+                new SniperSnapshot(ITEM_ID, 123, 0, WINNING));
+
+        verify(sniperListener).sniperStateChanged(new SniperSnapshot(ITEM_ID, 2000, 0, LOSING));
+    }
 }

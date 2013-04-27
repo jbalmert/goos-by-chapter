@@ -1,6 +1,7 @@
 package auctionsniper.ui;
 
 import auctionsniper.AuctionSniperDriver;
+import auctionsniper.Item;
 import auctionsniper.SniperPortfolio;
 import auctionsniper.UserRequestListener;
 import com.objogate.wl.swing.probe.ValueMatcherProbe;
@@ -14,6 +15,10 @@ import static org.hamcrest.Matchers.equalTo;
  * Code from GOOS, pg 186
  * - Created makesUserRequestWhenJoinButtonClicked to force the MainWindow to fire off an event
  *     to the new UserRequestListener to handle joining an auction.
+ *
+ * Changed Chapter 18:
+ * Code from GOOS, pg 209
+ * - Updated test to use Item on the userRequestListener.
  */
 public class MainWindowTest {
     private final SniperPortfolio portfolio = new SniperPortfolio();
@@ -22,18 +27,18 @@ public class MainWindowTest {
 
     @Test
     public void makesUserRequestWhenJoinButtonClicked() {
-        final ValueMatcherProbe<String> buttonProbe =
-                new ValueMatcherProbe<String>(equalTo("an item-id"), "join request");
+        final ValueMatcherProbe<Item> itemProbe =
+                new ValueMatcherProbe<Item>(equalTo(new Item("an item-id", 789)), "join request");
 
         mainWindow.addUserRequestListener(
             new UserRequestListener() {
                 @Override
-                public void joinAuction(String itemId) {
-                    buttonProbe.setReceivedValue(itemId);
+                public void joinAuction(Item item) {
+                    itemProbe.setReceivedValue(item);
                 }
             });
 
-        driver.startBiddingFor("an item-id");
-        driver.check(buttonProbe);
+        driver.startBiddingFor("an item-id", 789);
+        driver.check(itemProbe);
     }
 }
