@@ -15,6 +15,10 @@ import static java.lang.String.format;
  * supposed to be its own class long ago.  I moved all of the constants this class needs out of of Main.  This
  * forced a few updates in other classes that reference those constants.  I'm not sure if this is how the authors
  * intended it to be.
+ *
+ * Changed Chapter 19:
+ * Code from GOOS, pg 220
+ * - Added extra listener to unsubscribe from the chat if the auction fails.
  */
 public class XMPPAuction implements Auction {
 
@@ -24,11 +28,14 @@ public class XMPPAuction implements Auction {
 
     private AuctionEventAnnouncer auctionEventListeners = new AuctionEventAnnouncer();
     private final Chat chat;
+    private XMPPFailureReporter failureReporter;
 
-    public XMPPAuction(XMPPConnection connection, String auctionId) {
-        chat = connection.getChatManager().createChat(auctionId,
-                new AuctionMessageTranslator(connection.getUser(),
-                        auctionEventListeners));
+    public XMPPAuction(XMPPConnection connection, String auctionId,
+                       XMPPFailureReporter failureReporter) {
+        this.failureReporter = failureReporter;
+        AuctionMessageTranslator translator = translatorFor(connection);
+        chat = connection.getChatManager().createChat(auctionId, translator);
+        addAuctionEventListener(chatDisconnectorFor(translator));
     }
 
     @Override
@@ -46,7 +53,21 @@ public class XMPPAuction implements Auction {
         auctionEventListeners.addListener(auctionSniper);
     }
 
+    private AuctionMessageTranslator translatorFor(XMPPConnection connection) {
+        return new AuctionMessageTranslator(connection.getUser(),
+                auctionEventListeners, failureReporter);
+    }
 
+    private AuctionEventListener chatDisconnectorFor(final AuctionMessageTranslator translator) {
+        return new AuctionEventListener() {
+            @Override public void auctionClosed() {}
+            @Override public void currentPrice(int price, int increment, PriceSource fromSniper) {}
+
+            @Override public void auctionFailed() {
+                chat.removeMessageListener(translator);
+            }
+        };
+    }
 
     private void sendMessage(final String message) {
         try {

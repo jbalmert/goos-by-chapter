@@ -37,6 +37,10 @@ import static org.hamcrest.Matchers.*;
  * Changed Chapter 16:
  * Code from GOOS, pg 178
  * - Changed receives a message to use a property matcher to create a meaningful failure message.
+ *
+ * Changed Chapter 19:
+ * Code described in GOOS, pg 216
+ * - Added sendInvalidMessageContaining() to drive out error handling.
  */
 public class FakeAuctionServer {
     public static final String ITEM_ID_AS_LOGIN ="auction-%s";
@@ -100,6 +104,10 @@ public class FakeAuctionServer {
             throws InterruptedException {
         messageListener.receivesAMessage(messageMatcher);
         assertThat(currentChat.getParticipant(), equalTo(sniperId));
+    }
+
+    public void sendInvalidMessageContaining(String brokenMessage) throws XMPPException{
+        currentChat.sendMessage(brokenMessage);
     }
 
     public class SingleMessageListener implements MessageListener {

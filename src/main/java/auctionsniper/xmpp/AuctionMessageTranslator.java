@@ -20,25 +20,44 @@ import java.util.HashMap;
  * Code from GOOS, pg 135
  * - An AuctionEvent class is extracted to own the responsibility of parsing event messages
  *
- * * Added Chapter 14:
+ * Changed Chapter 14:
  * - Added sniperId parameter to AuctionMessageTranslator constructor to allow the translator to determine if the
  *     current bid is from the sniper or someone else.
  *
- * - Changed Chapter 17:
+ * Changed Chapter 17:
  * Moved to xmpp package as described in GOOS, pg 195.
+ *
+ * Changed Chapter 19:
+ * Code from GOOS, pg 217, 218
+ * - Added error handling.  When a message is malformed or missing required fields, MessageListener.auctionFailed()
+ *     is now called.
+ * - Added logging support for failures.
  */
 public class AuctionMessageTranslator implements MessageListener {
     private final AuctionEventListener listener;
     private final String sniperId;
+    private final XMPPFailureReporter failureReporter;
+    public static final String LOG_FILE_NAME = "auction-sniper.log";
 
-    public AuctionMessageTranslator(String sniperId, AuctionEventListener listener) {
+    public AuctionMessageTranslator(String sniperId, AuctionEventListener listener,
+                                    XMPPFailureReporter failureReporter) {
         this.listener = listener;
         this.sniperId = sniperId;
+        this.failureReporter = failureReporter;
     }
 
     public void processMessage(Chat chat, Message message) {
-        AuctionEvent event = AuctionEvent.from(message.getBody());
+        String messageBody = message.getBody();
+        try {
+            translate(messageBody);
+        } catch (Exception parseException) {
+            failureReporter.cannotTranslateMessage(sniperId, messageBody, parseException);
+            listener.auctionFailed();
+        }
+    }
 
+    private void translate(String message) {
+        AuctionEvent event = AuctionEvent.from(message);
         String eventType = event.type();
         if ("CLOSE".equals(eventType)) {
             listener.auctionClosed();
@@ -76,7 +95,11 @@ public class AuctionMessageTranslator implements MessageListener {
         }
 
         private String get(String fieldName) {
-            return fields.get(fieldName);
+            String value = fields.get(fieldName);
+            if (null == value) {
+                throw new MissingValueException(fieldName);
+            }
+            return value;
         }
 
         private void addField(String field) {
@@ -103,6 +126,12 @@ public class AuctionMessageTranslator implements MessageListener {
 
         private String bidder() {
            return get("Bidder");
+        }
+
+        private class MissingValueException extends RuntimeException {
+            public MissingValueException(String fieldName) {
+                super("Unable to parse " + fieldName + " from message.");
+            }
         }
     }
 }

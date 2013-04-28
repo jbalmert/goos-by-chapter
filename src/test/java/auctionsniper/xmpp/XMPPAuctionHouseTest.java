@@ -23,6 +23,10 @@ import java.util.concurrent.CountDownLatch;
  * Changed Chapter 18:
  * Code not in GOOS:
  * - Updated tests to take fix compilation issues from introduction Item object to AuctionHouse interface.
+ *
+ * Changed Chapter 19:
+ * Code not in GOOS
+ * - Added empty implementation of auctionFailed() to the AuctionEventListener
  */
 public class XMPPAuctionHouseTest {
 
@@ -53,6 +57,11 @@ public class XMPPAuctionHouseTest {
             @Override
             public void auctionClosed() {
                 auctionWasClosed.countDown();
+            }
+
+            @Override
+            public void auctionFailed() {
+                //To change body of implemented methods use File | Settings | File Templates.
             }
 
             @Override

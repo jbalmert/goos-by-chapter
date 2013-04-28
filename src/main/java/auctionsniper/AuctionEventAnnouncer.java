@@ -8,6 +8,10 @@ import java.util.Set;
  * Code not found in GOOS.
  * - This is a stand in for the Announcer code I opted not to implement or reference from JMock.  It
  *     broadcasts messages to all subscribed listeners.
+ *
+ * Chapter 19:
+ * Code not found in GOOS
+ * - Implemented auctionFailed() to broadcast to all subscribed listeners.
  */
 public class AuctionEventAnnouncer implements AuctionEventListener {
     Set<AuctionEventListener> listeners = new HashSet<AuctionEventListener>();
@@ -20,6 +24,13 @@ public class AuctionEventAnnouncer implements AuctionEventListener {
     public void auctionClosed() {
         for (AuctionEventListener listener: listeners) {
             listener.auctionClosed();
+        }
+    }
+
+    @Override
+    public void auctionFailed() {
+        for (AuctionEventListener listener: listeners) {
+            listener.auctionFailed();
         }
     }
 

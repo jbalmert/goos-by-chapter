@@ -38,11 +38,14 @@ import java.util.Set;
  * Changed Chapter 18:
  * Code from GOOS, pg 207
  * - Added "Losing" to STATUS_TEXT.
+ *
+ * Changed Chapter 19:
+ * - Added "Failed" to STATUS_TEXT.
  */
 public class SnipersTableModel extends AbstractTableModel implements SniperListener, PortfolioListener {
 
     private static String[] STATUS_TEXT = {
-            "Joining", "Bidding", "Winning", "Losing", "Lost", "Won"
+            "Joining", "Bidding", "Winning", "Losing", "Lost", "Won", "Failed"
     };
     private List<SniperSnapshot> snapshots = new ArrayList<SniperSnapshot>();
 

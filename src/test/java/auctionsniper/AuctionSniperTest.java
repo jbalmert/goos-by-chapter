@@ -1,6 +1,7 @@
 package auctionsniper;
 
 import static auctionsniper.AuctionEventListener.*;
+import static auctionsniper.SniperSnapshot.*;
 import static org.mockito.Mockito.*;
 import static auctionsniper.AuctionEventListener.PriceSource.*;
 import org.junit.Before;
@@ -45,6 +46,10 @@ import static auctionsniper.SniperSnapshot.SniperState.*;
  *     continuesToBeLosingOnceStopPriceHasBeenReached(), and
  *     doesNotBidAndReportsLosingIfPriceAfterWinningIsAboveStopPrice() are mentioned as extra tests, but the code
  *     is left as an exercise for the reader.  Implementations for these have been built.
+ *
+ * Changed Chapter 19:
+ * Code from GOOS, pg 218
+ * - Added reportsFailedIfAuctionFailsWhenBidding() to drive out the appropriate response when an auction fails.
  */
 
 @RunWith(MockitoJUnitRunner.class)
@@ -162,5 +167,14 @@ public class AuctionSniperTest {
                 new SniperSnapshot(ITEM_ID, 123, 0, WINNING));
 
         verify(sniperListener).sniperStateChanged(new SniperSnapshot(ITEM_ID, 2000, 0, LOSING));
+    }
+
+    @Test
+    public void reportsFailedIfAuctionFailsWhenBidding() {
+        sniper.currentPrice(123, 45, PriceSource.FromOtherBidder);
+        sniper.auctionFailed();
+
+        verify(sniperListener).sniperStateChanged(
+                new SniperSnapshot(ITEM_ID, 0, 0, SniperState.FAILED));
     }
 }

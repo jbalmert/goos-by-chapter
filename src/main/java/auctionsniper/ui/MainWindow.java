@@ -46,6 +46,10 @@ import java.util.Set;
  * - Updated joinActionButton.addActionListener to have the anonymous implementation of ActionListener
  *     announce events to the updated UserRequestListener with an Item instead of a string.  Also, added some
  *     helper methods to make this method cleaner.
+ *
+ * Chapter 19:
+ * Code not in GOOS
+ * - Added STATUS_FAILED constant
  */
 public class MainWindow extends JFrame{
     private final Set<UserRequestListener> userRequests = new HashSet<UserRequestListener>();
@@ -55,12 +59,12 @@ public class MainWindow extends JFrame{
     public static final String STATUS_WON = "Won";
     public static final String STATUS_LOST = "Lost";
     public static final String STATUS_LOSING = "Losing";
+    public static final String STATUS_FAILED = "Failed";
     private static final String SNIPERS_TABLE_NAME = "Snipers";
     public static final String APPLICATION_TITLE = "Auction Sniper";
     public static final String NEW_ITEM_ID_NAME = "item id";
     public static final String JOIN_BUTTON_NAME = "join button";
     public static final String NEW_ITEM_STOP_PRICE_NAME = "stop price";
-
 
     public MainWindow(SniperPortfolio portfolio) {
         super(APPLICATION_TITLE);

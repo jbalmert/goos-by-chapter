@@ -32,6 +32,10 @@ import sun.rmi.log.LogOutputStream;
  * Code from GOOS, pg 207
  * - Added LOSING SniperState
  * - Added losing() SniperState transition method.
+ *
+ * Changed Chapter 19:
+ * Code described in GOOS, pg 216
+ * - Added FAILED SniperState.
  */
 public class SniperSnapshot {
     public final String itemId;
@@ -69,7 +73,8 @@ public class SniperSnapshot {
             }
         },
         LOST,
-        WON;
+        WON,
+        FAILED;
 
         public SniperState whenAuctionClosed() {
             throw new Defect("Auction is already closed");
@@ -103,6 +108,10 @@ public class SniperSnapshot {
 
     public SniperSnapshot losing(int price) {
         return new SniperSnapshot(itemId, price, lastBid, SniperState.LOSING);
+    }
+
+    public SniperSnapshot failed() {
+        return new SniperSnapshot(itemId, 0, 0, SniperState.FAILED);
     }
 
     @Override

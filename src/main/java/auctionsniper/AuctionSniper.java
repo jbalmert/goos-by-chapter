@@ -31,6 +31,11 @@ package auctionsniper;
  * - Changed implementation of currentPrice to take into account the new Item domain concept.  This now
  *    asks the item if a new bid is allowed.  The Item will check the bid against the stopPrice.  If the bid is
  *    not allowed, the sniper announces it is losing.
+ *
+ * Changed Chapter 19:
+ * Code from GOOS, pg 219
+ * - Added auctionFailed() from AuctionEventListener.  When notified of a failure, the snapshot is set to
+ *     SniperSnapshot.failed().
  */
 public class AuctionSniper implements AuctionEventListener{
     private SniperSnapshot snapshot;
@@ -52,6 +57,12 @@ public class AuctionSniper implements AuctionEventListener{
     public void auctionClosed() {
         snapshot = snapshot.closed();
         notifyChange();
+    }
+
+    @Override
+    public void auctionFailed() {
+        snapshot = snapshot.failed();
+        sniperListener.sniperStateChanged(snapshot);
     }
 
     @Override
